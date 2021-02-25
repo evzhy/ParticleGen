@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Interfaces">
+      <UniqueIdentifier>{a1b2e1b1-f61a-4cd9-ad91-f88df3c89309}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GLUT">
+      <UniqueIdentifier>{52c96a12-3ed6-4c95-9dec-e2a21dadd7de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL">
+      <UniqueIdentifier>{b4f33147-67f5-4da0-a36c-a68fa76e9af0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effects">
+      <UniqueIdentifier>{9d9d6861-ca5b-4537-b638-a220c8363e0b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\opengl\RendererOpenGL.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\glut\ManagerGLUT.cpp">
+      <Filter>GLUT</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ParticlePhysics.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Particle.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\EffectManager.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderData.cpp">
+      <Filter>Effects</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\opengl\RendererOpenGL.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glut\ManagerGLUT.h">
+      <Filter>GLUT</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IWindowManager.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IRenderer.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ParticlePhysics.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Particle.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ParticleGenConfig.h" />
+    <ClInclude Include="src\IParticlePhysics.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IEffectManager.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\EffectManager.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderData.h">
+      <Filter>Effects</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IRenderData.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ParticleGenTypes.h" />
+  </ItemGroup>
+</Project>
