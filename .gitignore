@@ -1,0 +1,6 @@
+/.vs
+/bin/Debug
+/bin/*.ilk
+/bin/*.pdb
+/bin/*.exe
+/*.user

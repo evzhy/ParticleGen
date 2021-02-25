@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\EffectManager.cpp" />
+    <ClCompile Include="src\GenerationSync.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\glut\ManagerGLUT.cpp" />
     <ClCompile Include="src\opengl\RendererOpenGL.cpp" />
@@ -21,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\EffectManager.h" />
+    <ClInclude Include="src\GenerationSync.h" />
     <ClInclude Include="src\glut\ManagerGLUT.h" />
     <ClInclude Include="src\IEffectManager.h" />
     <ClInclude Include="src\IParticlePhysics.h" />

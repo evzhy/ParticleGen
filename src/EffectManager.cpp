@@ -11,31 +11,6 @@ auto IEffectManager::Make( ) -> SharedEffectManager
 	return std::make_shared<EffectManager>( );
 }
 
-//-----------------------------------------------------------
-
-GenerationSync::GenerationSync( std::mutex& threadBalancingMutex, std::size_t numberOfThreads )
-	: mThreadBalancingMutex( threadBalancingMutex ), mNumberOfThreads( numberOfThreads )
-{
-	mThreadBalancingMutex.lock( );
-}
-
-GenerationSync::~GenerationSync( )
-{
-	mThreadBalancingMutex.unlock( );
-}
-
-auto GenerationSync::CreateEffectAtPos( gen::Vec3 pos ) -> void
-{
-	// think if use effects (same lifetime of all particles) or just particles
-}
-
-auto GenerationSync::GetEffectQueueForThread( std::size_t threadIndex ) -> EffectQueue&
-{
-	return threadIndex < mNumberOfThreads ? mEffectQueues[threadIndex] : mDummy;
-}
-
-//-----------------------------------------------------------
-
 EffectManager::EffectManager( )
 {
 	Init( );
@@ -59,7 +34,7 @@ auto EffectManager::GetRenderData( ) -> std::unique_ptr<IRenderData>
 
 auto EffectManager::GetGenerationSync( ) -> std::unique_ptr<IGenerationSync>
 {
-	return std::move( std::make_unique<GenerationSync>( mThreadBalancingMutex, mThreadData.size( ) ) );
+	return std::move( std::make_unique<GenerationSync>( mThreadBalancingMutex, mNewEffectsInSync, mThreadData.size( ) ) );
 }
 
 auto EffectManager::Init( ) -> void
@@ -108,9 +83,6 @@ auto EffectManager::Init( ) -> void
 
 auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_t threadIndex ) -> void
 {
-	// list of Particle, each has ref to vec3 in stable array and gets vec3 into active array
-	// Particle needs an Init that changes refs every time
-
 	// init particles list
 	std::list<Particle> particles;
 	auto particlePhysics = IParticlePhysics::Make( ParticlePhysicsType::xyFalling );
@@ -120,6 +92,8 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 		particles.emplace_back( particlePhysics, data.first.data[i], data.second.data[i] );
 	}
 
+	std::vector<gen::Vec3> explodedParticles;
+
 	auto threadStartTime = std::chrono::system_clock::now( );
 	auto lastCycleTime = threadStartTime;
 	auto currentTime = lastCycleTime;
@@ -128,12 +102,14 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 
 	while ( mWorking.load( ) )
 	{
+		explodedParticles.clear( );
+
 		lastCycleTime = currentTime;
 		currentTime = std::chrono::system_clock::now( );
 		std::chrono::duration<float> timeDiff = currentTime - lastCycleTime;
 
-		// calc particle coords
-		int writeBufferIndex = 0; // index of current active vertex in active (write) buffer
+		// calc particle coords ------------------------------------------------------------------------
+		std::size_t writeBufferIndex = 0; // index of current active vertex in active (write) buffer
 		auto& writeBuffer = firstToSecondRW ? data.second.data : data.first.data;
 		auto particleIterator = particles.begin( );
 
@@ -154,8 +130,7 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 				// move to end of list, if exploded into new effect, add to new effects array
 				if ( particle.CreatesNewEffect( ) )
 				{
-					auto newEffectPosition = particle.GetPos( );
-					// TODO: add new effect to array
+					explodedParticles.push_back( particle.GetPos( ) );
 				}
 
 				auto nextIterator = particleIterator;
@@ -170,13 +145,16 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 			}
 		}
 
-		// sync - update number of active particles
+		// sync - update number of active particles -----------------------------------------------------
+		if ( !explodedParticles.empty( ) || mNewEffectsInSync.load( ) )
 		{
 			auto sync = GetGenerationSync( );
-			//sync->UpdateEffectsForThread( threadIndex, newEffectPosVec )
-			// update sync with number of vertices in this thread
-			// send particles-becoming-effects to sync, let it calc the load
-			// get new effects with particles from sync
+			auto& newEffects = sync->UpdateEffectsForThread( threadIndex, writeBufferIndex, explodedParticles );
+
+			if ( !newEffects.empty( ) )
+			{
+				//
+			}
 		}
 
 		// update new number of active particles for rendering
