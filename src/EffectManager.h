@@ -31,4 +31,6 @@ private:
 	// flag for synchronizing generation threads to get new effects
 	// - set to true from GenerationSync, set to false during synchronization after getting new effect array
 	std::atomic<bool> mNewEffectsInSync{false};
+
+	GenerationSyncState mSyncState;
 };

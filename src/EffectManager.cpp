@@ -12,6 +12,7 @@ auto IEffectManager::Make( ) -> SharedEffectManager
 }
 
 EffectManager::EffectManager( )
+	: mSyncState( mThreadBalancingMutex, mNewEffectsInSync )
 {
 	Init( );
 }
@@ -34,7 +35,7 @@ auto EffectManager::GetRenderData( ) -> std::unique_ptr<IRenderData>
 
 auto EffectManager::GetGenerationSync( ) -> std::unique_ptr<IGenerationSync>
 {
-	return std::move( std::make_unique<GenerationSync>( mThreadBalancingMutex, mNewEffectsInSync, mThreadData.size( ) ) );
+	return std::move( std::make_unique<GenerationSync>( mSyncState ) );
 }
 
 auto EffectManager::Init( ) -> void

@@ -1,41 +1,62 @@
 #include "GenerationSync.h"
+#include "ParticleGenConfig.h"
 
-#ifdef _DEBUG
-#include <assert.h>
-#endif
-
-GenerationSync::GenerationSync( std::mutex& threadBalancingMutex, std::atomic<bool>& newEffectFlag,
-								std::size_t numberOfThreads )
-	: mThreadBalancingMutex( threadBalancingMutex ), mNewEffectsFlag( newEffectFlag ), mNumberOfThreads( numberOfThreads )
+GenerationSyncState::GenerationSyncState( std::mutex& threadBalancingMutex, std::atomic<bool>& newEffectsFlag )
+	: threadBalancingMutex( threadBalancingMutex ), newEffectsFlag( newEffectsFlag )
 {
-#ifdef _DEBUG
-	assert( mNumberOfThreads > 0 );
-#endif
+	effectQueues.resize( gNumberOfGenerationThreads );
+	particlesCount.resize( gNumberOfGenerationThreads );
+}
 
-	mEffectQueues.resize( mNumberOfThreads );
-	mEffectQueues.resize( mNumberOfThreads );
+//-----------------------------------------------------------------------
 
-	mThreadBalancingMutex.lock( );
+GenerationSync::GenerationSync( GenerationSyncState& state )
+	: mState( state )
+{
+	mState.threadBalancingMutex.lock( );
 }
 
 GenerationSync::~GenerationSync( )
 {
-	mThreadBalancingMutex.unlock( );
+	mState.threadBalancingMutex.unlock( );
 }
 
 auto GenerationSync::CreateEffectAtPos( gen::Vec3 pos ) -> void
 {
-	// TODO: balance threads
 }
 
 auto GenerationSync::UpdateEffectsForThread( std::size_t threadIndex, std::size_t activeParticlesInThisThread,
 											 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue&
 {
-	if ( threadIndex < mNumberOfThreads )
+	if ( threadIndex < gNumberOfGenerationThreads )
 	{
-		// update number of active particles per thread
+		// update particle counters
+		mState.particlesCount[threadIndex] = activeParticlesInThisThread;
+		std::size_t totalParticles = 0;
 
-		return mEffectQueues[threadIndex];
+		for ( auto particlesInThread : mState.particlesCount )
+		{
+			totalParticles += particlesInThread;
+		}
+
+		for ( auto& newEffectsThreadQueue : mState.effectQueues )
+		{
+			for ( auto& newEffectScenario : newEffectsThreadQueue )
+			{
+				totalParticles += newEffectScenario.second;
+			}
+		}
+
+		static const auto maxParticles = gMaxParticleEffects * gMaxParticlesPerEffect;
+
+		if ( totalParticles < maxParticles )
+		{
+			// under particle limit, can generate new effects
+
+			mState.newEffectsFlag.store( true );
+		}
+
+		return mState.effectQueues[threadIndex];
 	}
 
 	return mDummy;

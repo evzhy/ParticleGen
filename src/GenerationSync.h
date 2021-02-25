@@ -3,11 +3,21 @@
 #include "IEffectManager.h"
 #include <mutex>
 
+struct GenerationSyncState
+{
+	std::vector<EffectQueue> effectQueues;
+	std::vector<std::size_t> particlesCount; // alive particles per thread
+
+	std::mutex& threadBalancingMutex; // lock/unlock mutex on ctor/dtor
+	std::atomic<bool>& newEffectsFlag;
+
+	GenerationSyncState( std::mutex& threadBalancingMutex, std::atomic<bool>& newEffectsFlag );
+};
+
 class GenerationSync : public IGenerationSync
 {
 public:
-	explicit GenerationSync( std::mutex& threadBalancingMutex, std::atomic<bool>& newEffectFlag,
-							 std::size_t numberOfThreads );
+	explicit GenerationSync( GenerationSyncState& state );
 	~GenerationSync( ) override;
 
 	auto CreateEffectAtPos( gen::Vec3 pos ) -> void override;
@@ -15,11 +25,6 @@ public:
 								 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue& override;
 
 private:
-	std::mutex& mThreadBalancingMutex; // lock/unlock mutex on ctor/dtor
-	std::atomic<bool>& mNewEffectsFlag;
-	std::size_t mNumberOfThreads{0};
-	std::vector<EffectQueue> mEffectQueues;
-	std::vector<std::size_t> mThreadActiveParticleCount; // alive particles per thread
-
+	GenerationSyncState& mState;
 	EffectQueue mDummy;
 };
