@@ -1,11 +1,14 @@
 #include "GenerationSync.h"
 #include "ParticleGenConfig.h"
 
-GenerationSyncState::GenerationSyncState( std::mutex& threadBalancingMutex, std::atomic<bool>& newEffectsFlag )
-	: threadBalancingMutex( threadBalancingMutex ), newEffectsFlag( newEffectsFlag )
+GenerationSyncState::SyncStateThreadData::SyncStateThreadData( )
+	: effectQueueFlag( std::make_shared<std::atomic<bool>>( false ) )
 {
-	effectQueues.resize( gNumberOfGenerationThreads );
-	particlesCount.resize( gNumberOfGenerationThreads );
+}
+
+GenerationSyncState::GenerationSyncState( )
+{
+	threadData.resize( gNumberOfGenerationThreads );
 }
 
 //-----------------------------------------------------------------------
@@ -13,12 +16,10 @@ GenerationSyncState::GenerationSyncState( std::mutex& threadBalancingMutex, std:
 GenerationSync::GenerationSync( GenerationSyncState& state )
 	: mState( state )
 {
-	mState.threadBalancingMutex.lock( );
 }
 
 GenerationSync::~GenerationSync( )
 {
-	mState.threadBalancingMutex.unlock( );
 }
 
 auto GenerationSync::CreateEffectAtPos( gen::Vec3 pos ) -> void
@@ -26,38 +27,35 @@ auto GenerationSync::CreateEffectAtPos( gen::Vec3 pos ) -> void
 }
 
 auto GenerationSync::UpdateEffectsForThread( std::size_t threadIndex, std::size_t activeParticlesInThisThread,
-											 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue&
+											 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue&&
 {
 	if ( threadIndex < gNumberOfGenerationThreads )
 	{
+		std::lock_guard<std::mutex> lk( mState.threadBalancingMutex );
+
+		auto& data = mState.threadData[threadIndex];
+		data.particlesActive = activeParticlesInThisThread;
+
 		// update particle counters
-		mState.particlesCount[threadIndex] = activeParticlesInThisThread;
 		std::size_t totalParticles = 0;
+		std::size_t cycledThreadIndex = 0;
 
-		for ( auto particlesInThread : mState.particlesCount )
+		for ( auto& data : mState.threadData )
 		{
-			totalParticles += particlesInThread;
+			totalParticles += data.particlesActive + data.particlesInQueue;
 		}
 
-		for ( auto& newEffectsThreadQueue : mState.effectQueues )
-		{
-			for ( auto& newEffectScenario : newEffectsThreadQueue )
-			{
-				totalParticles += newEffectScenario.second;
-			}
-		}
-
-		static const auto maxParticles = gMaxParticleEffects * gMaxParticlesPerEffect;
-
-		if ( totalParticles < maxParticles )
+		if ( totalParticles < gMaxParticleTotal )
 		{
 			// under particle limit, can generate new effects
-
-			mState.newEffectsFlag.store( true );
 		}
 
-		return mState.effectQueues[threadIndex];
+		auto&& queue = std::move( data.effectQueue );
+		data.effectQueue = {};
+		data.effectQueueFlag->store( false );
+
+		return std::move( queue );
 	}
 
-	return mDummy;
+	return std::move( mDummy );
 }

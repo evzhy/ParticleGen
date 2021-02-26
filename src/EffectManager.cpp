@@ -12,7 +12,6 @@ auto IEffectManager::Make( ) -> SharedEffectManager
 }
 
 EffectManager::EffectManager( )
-	: mSyncState( mThreadBalancingMutex, mNewEffectsInSync )
 {
 	Init( );
 }
@@ -45,6 +44,8 @@ auto EffectManager::Init( ) -> void
 		std::cout << "Trying to initialize Effect Manager again?" << std::endl;
 		return;
 	}
+
+	mWorking.store( true );
 
 	const std::size_t maxBufferSize = gMaxParticleEffects * gMaxParticlesPerEffect;
 
@@ -147,10 +148,10 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 		}
 
 		// sync - update number of active particles -----------------------------------------------------
-		if ( !explodedParticles.empty( ) || mNewEffectsInSync.load( ) )
+		if ( !explodedParticles.empty( ) || CheckNewEffectsInQueueForThread( threadIndex ) )
 		{
 			auto sync = GetGenerationSync( );
-			auto& newEffects = sync->UpdateEffectsForThread( threadIndex, writeBufferIndex, explodedParticles );
+			auto&& newEffects = sync->UpdateEffectsForThread( threadIndex, writeBufferIndex, explodedParticles );
 
 			if ( !newEffects.empty( ) )
 			{
@@ -177,4 +178,11 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 		// switch buffers immediately after optional waiting for the end of rendering
 		data.firstIsPassive.store( firstToSecondRW );
 	}
+}
+
+auto EffectManager::CheckNewEffectsInQueueForThread( std::size_t threadIndex ) -> bool
+{
+	return ( threadIndex < gNumberOfGenerationThreads )
+			   ? mSyncState.threadData[threadIndex].effectQueueFlag->load( )
+			   : false;
 }

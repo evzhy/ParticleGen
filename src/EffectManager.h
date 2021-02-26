@@ -16,21 +16,17 @@ public:
 private:
 	auto Init( ) -> void;
 	auto GenerationThreadCycle( ThreadGeneratorData& data, std::size_t threadIndex ) -> void;
+	auto CheckNewEffectsInQueueForThread( std::size_t threadIndex ) -> bool;
 
 private:
-	std::atomic<bool> mWorking{true};
+	std::atomic<bool> mWorking{false};
 
 	std::vector<std::thread> mThreads;
 	GeneratorVec mThreadData;
 
 	std::condition_variable mAfterRenderNotifier;
 	std::mutex mAfterRenderMutex;
-	std::mutex mThreadBalancingMutex;
 	std::atomic<bool> mRenderingInProgress{false};
-
-	// flag for synchronizing generation threads to get new effects
-	// - set to true from GenerationSync, set to false during synchronization after getting new effect array
-	std::atomic<bool> mNewEffectsInSync{false};
 
 	GenerationSyncState mSyncState;
 };

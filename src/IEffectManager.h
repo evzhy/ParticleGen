@@ -19,7 +19,7 @@ public:
 	/* thread synchronization - updates active particle count for thread and new effect coords
 	   returns array of effects with particle count */
 	virtual auto UpdateEffectsForThread( std::size_t threadIndex, std::size_t activeParticlesInThisThread,
-										 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue& = 0;
+										 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue&& = 0;
 };
 
 class IEffectManager;

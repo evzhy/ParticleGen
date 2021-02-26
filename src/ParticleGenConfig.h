@@ -23,3 +23,5 @@ const float gParticleExplodePercent = 10.f; // 0..100
 const float gParticleInitialSpeed = 50.f;   // 2D vector in pixels per second
 const float gParticleDecceleratoin = 40.f;  // percent of current speed, per second
 const float gParticleGravityAccel = 1.f;	// in pixels per second
+
+decltype( gMaxParticleEffects ) gMaxParticleTotal = gMaxParticleEffects * gMaxParticlesPerEffect;
