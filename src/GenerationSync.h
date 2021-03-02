@@ -16,7 +16,7 @@ struct GenerationSyncState
 	};
 
 	std::vector<SyncStateThreadData> threadData;
-	std::mutex threadBalancingMutex; // lock/unlock mutex on ctor/dtor
+	std::mutex threadBalancingMutex; // lock/unlock mutex during UpdateEffectsForThread
 
 	GenerationSyncState( );
 
@@ -34,7 +34,7 @@ public:
 
 	auto CreateEffectAtPos( gen::Vec3 pos ) -> void override;
 	auto UpdateEffectsForThread( std::size_t threadIndex, std::size_t activeParticlesInThisThread,
-								 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue&& override;
+								 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue override;
 
 private:
 	GenerationSyncState& mState;

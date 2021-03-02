@@ -14,26 +14,20 @@ public:
 	std::vector<gen::Vec3> data;	  // particle points from begin, new effect coords from end
 	std::size_t usedVerticesCount{0}; // actually used renderable vertices from beginning of array
 
-	ParticleData( const ParticleData& other ) = delete;
-	void operator=( const ParticleData& other ) = delete;
+	ParticleData( ParticleData& other ) = delete;
+	void operator=( ParticleData& other ) = delete;
 
-	ParticleData( const ParticleData&& other )
-		: data( std::move( other.data ) ), usedVerticesCount( other.usedVerticesCount )
-	{
-	}
-	void operator=( const ParticleData&& other )
-	{
-		data = std::move( other.data );
-		usedVerticesCount = other.usedVerticesCount;
-	}
+	ParticleData( ParticleData&& other ) = default;
+	ParticleData& operator=( ParticleData&& other ) = default;
 
-	static auto Make( std::size_t bufferSize ) -> ParticleData&&
+	static auto Make( std::size_t bufferSize ) -> ParticleData
 	{
 		return std::move( ParticleData( bufferSize ) );
 	}
 
 protected:
 	ParticleData( std::size_t bufferSize )
+		: usedVerticesCount( 0 )
 	{
 		data.resize( bufferSize );
 	}

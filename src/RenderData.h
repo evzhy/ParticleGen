@@ -16,14 +16,14 @@ public:
 	std::atomic<bool> firstIsPassive{true};
 
 	ThreadGeneratorData( std::size_t bufferSize )
-		: first( std::move( ParticleData::Make( bufferSize ) ) ), second( std::move( ParticleData::Make( bufferSize ) ) )
+		: first( ParticleData::Make( bufferSize ) ), second( ParticleData::Make( bufferSize ) )
 	{
 	}
 
 	ThreadGeneratorData( const ThreadGeneratorData& other ) = delete;
 	ThreadGeneratorData( const ThreadGeneratorData&& other ) = delete;
-	void operator=( const ThreadGeneratorData& other ) = delete;
-	void operator=( const ThreadGeneratorData&& other ) = delete;
+	ThreadGeneratorData& operator=( const ThreadGeneratorData& other ) = delete;
+	ThreadGeneratorData& operator=( const ThreadGeneratorData&& other ) = delete;
 };
 
 using GeneratorVec = std::vector<std::shared_ptr<ThreadGeneratorData>>; // have to wrap in shared_ptr because unmovable atomic

@@ -1,6 +1,9 @@
 /.vs
 /bin/Debug
+/bin/Release
 /bin/*.ilk
 /bin/*.pdb
+/bin/*.ipdb
+/bin/*.iobj
 /bin/*.exe
 /*.user

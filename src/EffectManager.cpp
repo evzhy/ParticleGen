@@ -69,7 +69,7 @@ auto EffectManager::Init( ) -> void
 	}
 
 	// run threads
-	for ( std::size_t i = 0; i < gNumberOfGenerationThreads; ++i )
+	for ( std::size_t i = 0; i < 1 /*gNumberOfGenerationThreads*/; ++i )
 	{
 		auto ptr = mThreadData[i];
 
@@ -88,8 +88,9 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 	// init particles list
 	std::list<Particle> particles;
 	auto particlePhysics = IParticlePhysics::Make( ParticlePhysicsType::xyFalling );
+	auto maxParticlesInData = data.first.data.size( );
 
-	for ( std::size_t i = 0; i < data.first.data.size( ); ++i )
+	for ( std::size_t i = 0; i < maxParticlesInData; ++i )
 	{
 		particles.emplace_back( particlePhysics, data.first.data[i], data.second.data[i] );
 	}
@@ -115,7 +116,7 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 		auto& writeBuffer = firstToSecondRW ? data.second.data : data.first.data;
 		auto particleIterator = particles.begin( );
 
-		for ( ; particleIterator != particles.end( ); ++particleIterator )
+		while ( particleIterator != particles.end( ) )
 		{
 			auto& particle = *particleIterator;
 
@@ -129,20 +130,24 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 
 			if ( particleExpired )
 			{
+				static int partIdx = 1;
+				std::cout << "expired " << partIdx << std::endl;
+				++partIdx;
+
 				// move to end of list, if exploded into new effect, add to new effects array
 				if ( particle.CreatesNewEffect( ) )
 				{
 					explodedParticles.push_back( particle.GetPos( ) );
 				}
 
-				auto nextIterator = particleIterator;
-				++nextIterator;
+				auto movedIterator = particleIterator;
+				++particleIterator;
 
-				particles.splice( particles.end( ), particles, particleIterator );
-				particleIterator = --nextIterator;
+				particles.splice( particles.end( ), particles, movedIterator );
 			}
 			else
 			{
+				++particleIterator;
 				++writeBufferIndex;
 			}
 		}
@@ -153,9 +158,29 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 			auto sync = GetGenerationSync( );
 			auto&& newEffects = sync->UpdateEffectsForThread( threadIndex, writeBufferIndex, explodedParticles );
 
-			if ( !newEffects.empty( ) )
+			if ( !newEffects.empty( ) && particleIterator != particles.end( ) )
 			{
-				//
+				for ( auto& effectScenario : newEffects )
+				{
+					for ( std::size_t i = 0; i < effectScenario.second; ++i )
+					{
+						auto& particle = *particleIterator;
+						particle.Reset( writeBuffer[writeBufferIndex] );
+
+						++writeBufferIndex;
+						++particleIterator;
+
+						if ( particleIterator == particles.end( ) )
+						{
+							break;
+						}
+					}
+
+					if ( particleIterator == particles.end( ) )
+					{
+						break;
+					}
+				}
 			}
 		}
 

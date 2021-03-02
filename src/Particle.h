@@ -8,7 +8,7 @@ public:
 	explicit Particle( SharedParticlePhysics physics, gen::Vec3& lastPos, gen::Vec3& newPos );
 	~Particle( ) = default;
 
-	auto Reset( gen::Vec3& lastPos, gen::Vec3& newPos, TimePassedF lifetime ) -> void;
+	auto Reset( gen::Vec3& newPos ) -> void;
 	auto SwitchPosRefs( gen::Vec3& newPos ) -> void;
 	auto SetAlive( bool alive ) -> void;
 

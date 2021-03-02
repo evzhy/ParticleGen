@@ -14,14 +14,18 @@ Particle::Particle( SharedParticlePhysics physics, gen::Vec3& lastPos, gen::Vec3
 	mCreatesNewEffect = percentRoll <= gParticleExplodePercent;
 }
 
-auto Particle::Reset( gen::Vec3& lastPos, gen::Vec3& newPos, TimePassedF lifetime ) -> void
+auto Particle::Reset( gen::Vec3& newPos ) -> void
 {
-	mLastPos = lastPos;
+	mLastPos = newPos;
 	mNewPos = newPos;
 
 	mState.Reset( );
-	mState.lifetime = lifetime;
 	mState.active = true;
+
+	if ( mPhysics != nullptr )
+	{
+		mPhysics->InitRandom( mState );
+	}
 }
 
 auto Particle::SwitchPosRefs( gen::Vec3& newPos ) -> void
@@ -47,7 +51,7 @@ auto Particle::Tick( TimePassedF timePassed ) -> bool
 
 	if ( mPhysics != nullptr )
 	{
-		mPhysics->ComputeMovement( timePassed, mState, mLastPos, mNewPos ); // compute only for
+		mPhysics->ComputeMovement( timePassed, mState, mLastPos, mNewPos );
 	}
 
 	return false;

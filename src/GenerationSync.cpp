@@ -24,10 +24,15 @@ GenerationSync::~GenerationSync( )
 
 auto GenerationSync::CreateEffectAtPos( gen::Vec3 pos ) -> void
 {
+	auto& data = mState.threadData[0];
+
+	data.effectQueue.emplace_back( pos, 64 );
+	data.particlesInQueue += gMaxParticlesPerEffect;
+	data.effectQueueFlag->store( true );
 }
 
 auto GenerationSync::UpdateEffectsForThread( std::size_t threadIndex, std::size_t activeParticlesInThisThread,
-											 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue&&
+											 std::vector<gen::Vec3>& explodedParticleCoords ) -> EffectQueue
 {
 	if ( threadIndex < gNumberOfGenerationThreads )
 	{
@@ -50,12 +55,13 @@ auto GenerationSync::UpdateEffectsForThread( std::size_t threadIndex, std::size_
 			// under particle limit, can generate new effects
 		}
 
-		auto&& queue = std::move( data.effectQueue );
-		data.effectQueue = {};
+		EffectQueue result;
+		std::swap( result, data.effectQueue );
+		data.particlesInQueue = 0;
 		data.effectQueueFlag->store( false );
 
-		return std::move( queue );
+		return std::move( result );
 	}
 
-	return std::move( mDummy );
+	return mDummy;
 }
