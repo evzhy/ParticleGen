@@ -9,6 +9,7 @@ public:
 	~RendererOpenGL( ) override;
 
 	auto RenderFrame( ) -> void override;
+	auto OnWindowResized( int width, int height ) -> void override;
 
 private:
 	SharedEffectManager mEffectManager;

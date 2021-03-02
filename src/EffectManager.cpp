@@ -92,7 +92,7 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 
 	for ( std::size_t i = 0; i < maxParticlesInData; ++i )
 	{
-		particles.emplace_back( particlePhysics, data.first.data[i], data.second.data[i] );
+		particles.emplace_back( particlePhysics );
 	}
 
 	std::vector<gen::Vec3> explodedParticles;
@@ -109,7 +109,7 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 
 		lastCycleTime = currentTime;
 		currentTime = std::chrono::system_clock::now( );
-		std::chrono::duration<float> timeDiff = currentTime - lastCycleTime;
+		auto timeDiff = currentTime - lastCycleTime;
 
 		// calc particle coords ------------------------------------------------------------------------
 		std::size_t writeBufferIndex = 0; // index of current active vertex in active (write) buffer
@@ -125,19 +125,14 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 				break; // reaching expired particle means end of processed particles
 			}
 
-			particle.SwitchPosRefs( writeBuffer[writeBufferIndex] );
-			auto particleExpired = particle.Tick( timeDiff );
+			auto particleExpired = particle.Tick( timeDiff, writeBuffer[writeBufferIndex] );
 
 			if ( particleExpired )
 			{
-				static int partIdx = 1;
-				std::cout << "expired " << partIdx << std::endl;
-				++partIdx;
-
 				// move to end of list, if exploded into new effect, add to new effects array
 				if ( particle.CreatesNewEffect( ) )
 				{
-					explodedParticles.push_back( particle.GetPos( ) );
+					explodedParticles.push_back( writeBuffer[writeBufferIndex] );
 				}
 
 				auto movedIterator = particleIterator;
@@ -165,7 +160,7 @@ auto EffectManager::GenerationThreadCycle( ThreadGeneratorData& data, std::size_
 					for ( std::size_t i = 0; i < effectScenario.second; ++i )
 					{
 						auto& particle = *particleIterator;
-						particle.Reset( writeBuffer[writeBufferIndex] );
+						particle.Reset( effectScenario.first );
 
 						++writeBufferIndex;
 						++particleIterator;
@@ -210,4 +205,9 @@ auto EffectManager::CheckNewEffectsInQueueForThread( std::size_t threadIndex ) -
 	return ( threadIndex < gNumberOfGenerationThreads )
 			   ? mSyncState.threadData[threadIndex].effectQueueFlag->load( )
 			   : false;
+}
+
+auto EffectManager::OnScreenSizeChanged( int width, int height ) -> void
+{
+	// TODO: update viewport size to set offscreen particles expired
 }

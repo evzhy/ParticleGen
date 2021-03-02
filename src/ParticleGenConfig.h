@@ -18,10 +18,10 @@ const unsigned int gMaxParticlesPerEffect = 64;
 const unsigned int gNumberOfGenerationThreads = 2;
 
 const bool gDestroyOffscreenParticles = true;
-const float gParticleLifetime = 2.f;
-const float gParticleExplodePercent = 10.f; // 0..100
-const float gParticleInitialSpeed = 50.f;   // 2D vector in pixels per second
-const float gParticleDecceleratoin = 40.f;  // percent of current speed, per second
-const float gParticleGravityAccel = 1.f;	// in pixels per second
+const long long gParticleLifetimeMS = 10000; // particle lifetime in milliseconds
+const float gParticleExplodePercent = 10.f;  // 0..100
+const float gParticleInitialSpeed = 20.f;	// 2D vector in pixels per second
+const float gParticleDecceleratoin = 40.f;   // percent of current speed, per second
+const float gParticleGravityAccel = 1.f;	 // in pixels per second
 
 decltype( gMaxParticleEffects ) gMaxParticleTotal = gMaxParticleEffects * gMaxParticlesPerEffect;

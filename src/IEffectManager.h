@@ -34,4 +34,6 @@ public:
 
 	virtual auto GetRenderData( ) -> std::unique_ptr<IRenderData> = 0;		   // requested from main thread
 	virtual auto GetGenerationSync( ) -> std::unique_ptr<IGenerationSync> = 0; // requrested from generation threads
+
+	virtual auto OnScreenSizeChanged( int width, int height ) -> void = 0;
 };

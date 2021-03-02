@@ -22,6 +22,14 @@ void CStyleRenderCallback( )
 	}
 }
 
+void CStyleReshapeCallback( int width, int height )
+{
+	if ( staticRendererPointer )
+	{
+		staticRendererPointer->OnWindowResized( width, height );
+	}
+}
+
 void CStyleIdleCallback( )
 {
 	std::this_thread::sleep_for( std::chrono::milliseconds( gRedrawInterval ) );
@@ -39,6 +47,7 @@ ManagerGLUT::ManagerGLUT( int argc, char** argv, SharedRenderer renderer )
 	glutCreateWindow( gWindowTitle );
 	glutInitDisplayMode( GLUT_DOUBLE );
 	glutDisplayFunc( CStyleRenderCallback );
+	glutReshapeFunc( CStyleReshapeCallback );
 	glutIdleFunc( CStyleIdleCallback );
 }
 

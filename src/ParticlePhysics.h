@@ -9,6 +9,5 @@ public:
 	~ParticlePhysicsXYFalling( ) override = default;
 
 	auto InitRandom( ParticleState& data ) -> void override;
-	auto ComputeMovement( TimePassedF timePassed,
-						  ParticleState& state, gen::Vec3& lastPos, gen::Vec3& newPos ) -> void override;
+	auto ComputeMovement( ParticleState& state, gen::Vec3& computedPos ) -> void override;
 };

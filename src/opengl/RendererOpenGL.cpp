@@ -53,4 +53,15 @@ auto RendererOpenGL::RenderFrame( ) -> void
 	glFlush( );
 }
 
+auto RendererOpenGL::OnWindowResized( int width, int height ) -> void
+{
+	glMatrixMode( GL_PROJECTION ); // Select The Projection Stack
+	glLoadIdentity( );
+	glOrtho( -width / 2, width / 2, -height / 2, height / 2, -1.0, 1.0 );
+
+	glViewport( 0, 0, width, height );
+
+	mEffectManager->OnScreenSizeChanged( width, height );
+}
+
 #endif

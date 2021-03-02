@@ -1,25 +1,18 @@
 #include "Particle.h"
 
-Particle::Particle( SharedParticlePhysics physics, gen::Vec3& lastPos, gen::Vec3& newPos )
-	: mPhysics( physics ), mLastPos( lastPos ), mNewPos( newPos )
+Particle::Particle( SharedParticlePhysics physics )
+	: mPhysics( physics )
 {
 	if ( mPhysics != nullptr )
 	{
 		mPhysics->InitRandom( mState );
 	}
-
-	// TODO: move all chance/effect logic to some strategy pattern
-	// TODO: use <random> with better distribution
-	float percentRoll = static_cast<float>( rand( ) ) / RAND_MAX * 100.f;
-	mCreatesNewEffect = percentRoll <= gParticleExplodePercent;
 }
 
-auto Particle::Reset( gen::Vec3& newPos ) -> void
+auto Particle::Reset( const gen::Vec3& startPos ) -> void
 {
-	mLastPos = newPos;
-	mNewPos = newPos;
-
 	mState.Reset( );
+	mState.startPos = startPos;
 	mState.active = true;
 
 	if ( mPhysics != nullptr )
@@ -28,13 +21,7 @@ auto Particle::Reset( gen::Vec3& newPos ) -> void
 	}
 }
 
-auto Particle::SwitchPosRefs( gen::Vec3& newPos ) -> void
-{
-	mLastPos = mNewPos;
-	mNewPos = newPos;
-}
-
-auto Particle::Tick( TimePassedF timePassed ) -> bool
+auto Particle::Tick( TimeDiff timePassed, gen::Vec3& writePos ) -> bool
 {
 	if ( !mState.active )
 	{
@@ -51,15 +38,10 @@ auto Particle::Tick( TimePassedF timePassed ) -> bool
 
 	if ( mPhysics != nullptr )
 	{
-		mPhysics->ComputeMovement( timePassed, mState, mLastPos, mNewPos );
+		mPhysics->ComputeMovement( mState, writePos );
 	}
 
 	return false;
-}
-
-auto Particle::GetPos( ) const -> gen::Vec3
-{
-	return mLastPos;
 }
 
 auto Particle::SetAlive( bool alive ) -> void
@@ -74,5 +56,5 @@ auto Particle::IsActive( ) const -> bool
 
 auto Particle::CreatesNewEffect( ) const -> bool
 {
-	return mCreatesNewEffect;
+	return mState.isSpecial;
 }

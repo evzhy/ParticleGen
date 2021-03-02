@@ -13,6 +13,8 @@ public:
 	auto GetRenderData( ) -> std::unique_ptr<IRenderData> override;
 	auto GetGenerationSync( ) -> std::unique_ptr<IGenerationSync> override;
 
+	auto OnScreenSizeChanged( int width, int height ) -> void override;
+
 private:
 	auto Init( ) -> void;
 	auto GenerationThreadCycle( ThreadGeneratorData& data, std::size_t threadIndex ) -> void;

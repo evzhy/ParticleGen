@@ -12,6 +12,7 @@ class IRenderer
 public:
 	virtual ~IRenderer( ) = default;
 	virtual auto RenderFrame( ) -> void = 0;
+	virtual auto OnWindowResized( int width, int height ) -> void = 0;
 
 	static auto Make( SharedEffectManager dataModel ) -> SharedRenderer;
 };

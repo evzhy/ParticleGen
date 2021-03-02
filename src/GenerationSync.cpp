@@ -26,7 +26,7 @@ auto GenerationSync::CreateEffectAtPos( gen::Vec3 pos ) -> void
 {
 	auto& data = mState.threadData[0];
 
-	data.effectQueue.emplace_back( pos, 64 );
+	data.effectQueue.emplace_back( pos, gMaxParticlesPerEffect );
 	data.particlesInQueue += gMaxParticlesPerEffect;
 	data.effectQueueFlag->store( true );
 }
